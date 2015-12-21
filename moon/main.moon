@@ -12,10 +12,11 @@ costs = {}
 
 love.load = ->
 	nnet = NeuralNetwork({2, 3, 1})
-	nnet.X = Matrix{{0.2, 0.6},
-					{0.54, 0.32},
-					{0.55, 0.36}}
-	nnet.Y = Matrix{{0.8}, {0.86}, {0.91}}
+	nnet.X = Matrix{{3, 5},
+					{5, 1},
+					{10, 2},
+					{6, 1.5}}
+	nnet.Y = Matrix{{75}, {82}, {93}, {70}}
 
 	nnet\propagate()
 
@@ -27,7 +28,7 @@ love.update = ->
 	costCount += 1
 	dJdW = nnet\backpropagate!
 
-	scalar = 12
+	scalar = 0.000010
 
 	for l = 1, #nnet.topology-1
 		nnet.W[l] -= scalar * dJdW[l]
@@ -50,9 +51,13 @@ love.draw = ->
 				maxCost = c
 		for _, j in ipairs(costs)
 			.point(_, (1-(j/maxCost))*300)
+		.line(costCount % 300, 0, costCount % 300, 300)
 
 		-- display tests
 		for _, test in ipairs(nnet.X.e)
 			.print("Test #".._, 400, _ * 50)
 			.print(test[1].." + "..test[2].."="..nnet.Y.e[_][1], 400, _ * 50 + 10)
 			.print("Predicted: "..nnet.YHat.e[_][1], 400, _ * 50 + 20)
+
+		-- display cost
+		.print("Score: "..(costs[costCount%300-1] or 0), 10, 400)

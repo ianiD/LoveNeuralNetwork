@@ -1,5 +1,6 @@
 local NeuralNetwork = require("net")
 local Matrix = require("matrix")
+local plot = require("plot")
 local insert
 insert = table.insert
 local random
@@ -16,27 +17,34 @@ love.load = function()
   })
   nnet.X = Matrix({
     {
-      0.2,
-      0.6
+      3,
+      5
     },
     {
-      0.54,
-      0.32
+      5,
+      1
     },
     {
-      0.55,
-      0.36
+      10,
+      2
+    },
+    {
+      6,
+      1.5
     }
   })
   nnet.Y = Matrix({
     {
-      0.8
+      75
     },
     {
-      0.86
+      82
     },
     {
-      0.91
+      93
+    },
+    {
+      70
     }
   })
   nnet:propagate()
@@ -47,7 +55,7 @@ love.update = function()
   costs[costCount % 300] = nnet:netCost()
   costCount = costCount + 1
   local dJdW = nnet:backpropagate()
-  local scalar = 12
+  local scalar = 0.000010
   for l = 1, #nnet.topology - 1 do
     nnet.W[l] = nnet.W[l] - (scalar * dJdW[l])
   end
@@ -69,11 +77,13 @@ love.draw = function()
     for _, j in ipairs(costs) do
       _with_0.point(_, (1 - (j / maxCost)) * 300)
     end
+    _with_0.line(costCount % 300, 0, costCount % 300, 300)
     for _, test in ipairs(nnet.X.e) do
       _with_0.print("Test #" .. _, 400, _ * 50)
       _with_0.print(test[1] .. " + " .. test[2] .. "=" .. nnet.Y.e[_][1], 400, _ * 50 + 10)
       _with_0.print("Predicted: " .. nnet.YHat.e[_][1], 400, _ * 50 + 20)
     end
+    _with_0.print("Score: " .. (costs[costCount % 300 - 1] or 0), 10, 400)
     return _with_0
   end
 end

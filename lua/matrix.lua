@@ -1,7 +1,7 @@
 local Matrix
 do
   local _base_0 = {
-    schur = function(a, b)
+    entrywise = function(a, b)
       if a.__class ~= Matrix then
         error("Lvalue for schur multiplication is not a matrix")
       end

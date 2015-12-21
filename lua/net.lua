@@ -5,15 +5,31 @@ local NeuralNetwork
 do
   local _base_0 = {
     sigmoid = function(x)
-      return 1 / (1 + exp(-x))
+      if type(x) == "number" then
+        return 1 / (1 + exp(-x))
+      end
+      if x.__class == Matrix then
+        return Matrix(x, function(i, j, e)
+          return NeuralNetwork.sigmoid(e)
+        end)
+      end
     end,
     sigmoidP = function(x)
-      return exp(-x) / ((1 + exp(-x)) ^ 2)
+      if type(x) == "number" then
+        return exp(-x) / ((1 + exp(-x)) ^ 2)
+      end
+      if x.__class == Matrix then
+        return Matrix(x, function(i, j, e)
+          return NeuralNetwork.sigmoid(e)
+        end)
+      end
     end,
     netCost = function(self)
       local J = 0
       for i = 1, #self.Y.e do
-        J = J + ((self.Y.e[i][1] - self.YHat.e[i][1]) ^ 2 / 2)
+        for j = 1, #self.Y.e[1] do
+          J = J + ((self.Y.e[i][j] - self.YHat.e[i][j]) ^ 2 / 2)
+        end
       end
       return J
     end,
@@ -30,17 +46,12 @@ do
     end,
     backpropagate = function(self)
       local dJdW, delta = { }, { }
-      delta[#self.topology] = Matrix.schur(-(self.Y - self.YHat), Matrix(self.Z[#self.topology], function(i, j, e)
-        return NeuralNetwork.sigmoidP(e)
-      end))
-      for l = (#self.topology - 1), 2, -1 do
-        local sigmoidPL = Matrix(self.Z[l], function(i, j, e)
-          return NeuralNetwork.sigmoidP(e)
-        end)
-        delta[l] = Matrix.schur(delta[l + 1] * self.W[l]:T(), sigmoidPL)
+      delta[self.layerC] = Matrix.entrywise(-(self.Y - self.YHat), NeuralNetwork.sigmoidP(self.Z[self.layerC]))
+      for L = self.layerC - 1, 2, -1 do
+        delta[L] = Matrix.entrywise(delta[L + 1] * self.W[L]:T(), NeuralNetwork.sigmoidP(self.Z[L]))
       end
-      for l = (#self.topology - 1), 1, -1 do
-        dJdW[l] = self.A[l]:T() * delta[l + 1]
+      for L = self.layerC - 1, 1, -1 do
+        dJdW[L] = self.A[L]:T() * delta[L + 1]
       end
       return dJdW
     end
@@ -55,6 +66,7 @@ do
         }
       end
       self.topology = topology
+      self.layerC = #topology
       self.X = Matrix(1, topology[1])
       self.Y = Matrix(1, topology[#self.topology])
       self.YHat = Matrix(1, topology[#self.topology])

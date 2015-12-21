@@ -25,7 +25,7 @@ class Matrix
 			else		-- Matrix(2, 3, 1) or Matrix(2, 3[, default=0])
 				@e = [ [e for j = 1, w] for i = 1, h]
 
-	schur: (a, b) ->
+	entrywise: (a, b) ->
 		if a.__class != Matrix
 			error "Lvalue for schur multiplication is not a matrix"
 		if b.__class != Matrix
