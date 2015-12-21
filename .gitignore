@@ -48,3 +48,5 @@ Temporary Items
 
 # Compiled lua
 lua/
+*.lua
+lua/*.lua
